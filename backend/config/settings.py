@@ -125,6 +125,14 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
 
+# Optional: share auth cookies across apex + api subdomain
+_session_domain = os.getenv("SESSION_COOKIE_DOMAIN", "").strip()
+if _session_domain:
+    SESSION_COOKIE_DOMAIN = _session_domain
+_csrf_domain = os.getenv("CSRF_COOKIE_DOMAIN", "").strip()
+if _csrf_domain:
+    CSRF_COOKIE_DOMAIN = _csrf_domain
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",

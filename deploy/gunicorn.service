@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/opt/dssl/backend
-EnvironmentFile=/opt/dssl/.env
-ExecStart=/opt/dssl/.venv/bin/gunicorn \
+WorkingDirectory=/var/www/diamondstate/backend
+EnvironmentFile=/var/www/diamondstate/.env
+ExecStart=/var/www/diamondstate/.venv/bin/gunicorn \
     --workers 3 \
     --bind 127.0.0.1:8000 \
     config.wsgi:application
