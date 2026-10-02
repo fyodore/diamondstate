@@ -363,8 +363,13 @@ textarea {
 
 .checkbox-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
+}
+
+.checkbox-row input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
 }
 
 .field-legend {
@@ -374,11 +379,30 @@ textarea {
 
 .checkbox-group {
   display: grid;
-  gap: 0.55rem;
-  padding: 0.85rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: 0.65rem 1.25rem;
+  padding: 0.95rem 1rem;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: white;
+  align-items: start;
+}
+
+.checkbox-group .checkbox-row {
+  margin: 0;
+  min-width: 0;
+}
+
+.checkbox-group .checkbox-row span {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .checkbox-group {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
 }
 
 .form-error {
