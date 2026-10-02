@@ -147,3 +147,9 @@ WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME", "Diamond State Softball League"
 WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "http://localhost:5173")
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Server/local overrides (gitignored). Copy settings_local.py.example → settings_local.py
+try:
+    from .settings_local import *  # noqa: F403
+except ImportError:
+    pass
