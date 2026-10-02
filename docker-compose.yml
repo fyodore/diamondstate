@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: dssl-postgres
+    environment:
+      POSTGRES_USER: dssl
+      POSTGRES_PASSWORD: dssl
+      POSTGRES_DB: dssl
+    ports:
+      - "5432:5432"
+    volumes:
+      - dssl_pgdata:/var/lib/postgresql/data
+
+volumes:
+  dssl_pgdata:
