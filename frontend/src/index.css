@@ -379,8 +379,8 @@ textarea {
 
 .checkbox-group {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
-  gap: 0.65rem 1.25rem;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
   padding: 0.95rem 1rem;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -390,19 +390,16 @@ textarea {
 
 .checkbox-group .checkbox-row {
   margin: 0;
+  width: 100%;
   min-width: 0;
 }
 
 .checkbox-group .checkbox-row span {
+  flex: 1;
   line-height: 1.35;
-  word-break: break-word;
-}
-
-@media (max-width: 600px) {
-  .checkbox-group {
-    grid-template-columns: 1fr;
-    gap: 0.7rem;
-  }
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .form-error {
