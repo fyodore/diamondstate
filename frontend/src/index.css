@@ -399,7 +399,7 @@ textarea {
 .checkbox-group .checkbox-row span {
   line-height: 1.35;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   word-break: normal;
 }
 
