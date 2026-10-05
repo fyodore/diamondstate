@@ -56,7 +56,19 @@ class SiteSettingsView(APIView):
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            serializer.save()
+        except OSError as exc:
+            return Response(
+                {
+                    "detail": (
+                        "Could not save logo file. Ensure "
+                        "/var/www/diamondstate/backend/media is writable by www-data."
+                    ),
+                    "error": str(exc),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         return Response(serializer.data)
 
 

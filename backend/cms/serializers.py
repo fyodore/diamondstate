@@ -43,25 +43,41 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         if not obj.logo:
             return None
         request = self.context.get("request")
-        url = obj.logo.url
+        try:
+            url = obj.logo.url
+        except ValueError:
+            return None
         if request:
             return request.build_absolute_uri(url)
         return url
 
+    @staticmethod
+    def _clear_logo_file(file_field):
+        if not file_field:
+            return
+        try:
+            storage = file_field.storage
+            name = file_field.name
+            if name and storage.exists(name):
+                storage.delete(name)
+        except Exception:
+            # Missing/unreadable old file should not block a new upload.
+            pass
+        file_field.name = ""
+
     def update(self, instance, validated_data):
         clear_logo = validated_data.pop("clear_logo", False)
-        logo = validated_data.pop("logo", serializers.empty)
+        logo_provided = "logo" in validated_data
+        logo = validated_data.pop("logo", None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        if clear_logo and logo is serializers.empty:
-            if instance.logo:
-                instance.logo.delete(save=False)
+        if clear_logo and not logo_provided:
+            self._clear_logo_file(instance.logo)
             instance.logo = None
-        elif logo is not serializers.empty:
-            if instance.logo and instance.logo != logo:
-                instance.logo.delete(save=False)
+        elif logo_provided and logo is not None:
+            self._clear_logo_file(instance.logo)
             instance.logo = logo
 
         instance.save()
