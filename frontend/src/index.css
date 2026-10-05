@@ -378,24 +378,25 @@ textarea {
 }
 
 .checkbox-group {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
   padding: 0.95rem 1rem;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: white;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .checkbox-group .checkbox-row {
   margin: 0;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   min-width: 0;
+  flex: 0 1 auto;
 }
 
 .checkbox-group .checkbox-row span {
-  flex: 1;
   line-height: 1.35;
   white-space: normal;
   overflow-wrap: anywhere;
