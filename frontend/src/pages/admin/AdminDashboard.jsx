@@ -24,6 +24,9 @@ export default function AdminDashboard() {
         <Link className="btn secondary" to="/manage/submissions">
           View submissions
         </Link>
+        <Link className="btn secondary" to="/manage/users">
+          Admin users
+        </Link>
       </div>
     </div>
   )

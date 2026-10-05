@@ -1,7 +1,10 @@
 import json
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.db.models import Count
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -26,6 +29,8 @@ from webauthn.helpers.structs import (
 
 from .models import WebAuthnCredential
 
+User = get_user_model()
+
 
 def _user_payload(user):
     return {
@@ -34,7 +39,25 @@ def _user_payload(user):
         "email": user.email,
         "is_staff": user.is_staff,
         "is_superuser": user.is_superuser,
+        "is_active": user.is_active,
     }
+
+
+def _staff_user_payload(user):
+    return {
+        **_user_payload(user),
+        "passkey_count": getattr(user, "passkey_count", user.webauthn_credentials.count()),
+        "date_joined": user.date_joined,
+        "last_login": user.last_login,
+    }
+
+
+def _password_errors(password, user=None):
+    try:
+        validate_password(password, user=user)
+    except ValidationError as exc:
+        return list(exc.messages)
+    return []
 
 
 @api_view(["GET"])
@@ -203,3 +226,112 @@ def list_passkeys(request):
             for c in creds
         ]
     )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminUser])
+def staff_users(request):
+    if request.method == "GET":
+        users = (
+            User.objects.filter(is_staff=True)
+            .annotate(passkey_count=Count("webauthn_credentials"))
+            .order_by("username")
+        )
+        return Response([_staff_user_payload(u) for u in users])
+
+    username = (request.data.get("username") or "").strip()
+    email = (request.data.get("email") or "").strip()
+    password = request.data.get("password") or ""
+    is_superuser = bool(request.data.get("is_superuser"))
+
+    if not username:
+        return Response({"detail": "Username is required."}, status=400)
+    if not password:
+        return Response({"detail": "Password is required."}, status=400)
+    if User.objects.filter(username__iexact=username).exists():
+        return Response({"detail": "That username is already taken."}, status=400)
+    if is_superuser and not request.user.is_superuser:
+        return Response(
+            {"detail": "Only superusers can create other superusers."},
+            status=403,
+        )
+
+    user = User(username=username, email=email, is_staff=True, is_superuser=is_superuser)
+    errors = _password_errors(password, user=user)
+    if errors:
+        return Response({"detail": errors[0], "errors": errors}, status=400)
+
+    user.set_password(password)
+    user.save()
+    user.passkey_count = 0
+    return Response(_staff_user_payload(user), status=201)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAdminUser])
+def staff_user_detail(request, user_id):
+    target = User.objects.filter(pk=user_id, is_staff=True).first()
+    if not target:
+        return Response({"detail": "Admin user not found."}, status=404)
+
+    if "is_active" in request.data:
+        is_active = bool(request.data.get("is_active"))
+        if target.id == request.user.id and not is_active:
+            return Response({"detail": "You cannot deactivate your own account."}, status=400)
+        if target.is_superuser and not request.user.is_superuser:
+            return Response(
+                {"detail": "Only superusers can change other superusers."},
+                status=403,
+            )
+        target.is_active = is_active
+
+    if "email" in request.data:
+        target.email = (request.data.get("email") or "").strip()
+
+    if "is_superuser" in request.data:
+        if not request.user.is_superuser:
+            return Response(
+                {"detail": "Only superusers can change superuser status."},
+                status=403,
+            )
+        if target.id == request.user.id and not bool(request.data.get("is_superuser")):
+            return Response(
+                {"detail": "You cannot remove your own superuser status."},
+                status=400,
+            )
+        target.is_superuser = bool(request.data.get("is_superuser"))
+
+    password = request.data.get("password")
+    if password:
+        if target.id != request.user.id and not request.user.is_superuser:
+            return Response(
+                {"detail": "Only superusers can reset another admin's password."},
+                status=403,
+            )
+        errors = _password_errors(password, user=target)
+        if errors:
+            return Response({"detail": errors[0], "errors": errors}, status=400)
+        target.set_password(password)
+
+    target.save()
+    if password and target.id == request.user.id:
+        update_session_auth_hash(request, target)
+
+    target.passkey_count = target.webauthn_credentials.count()
+    return Response(_staff_user_payload(target))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def change_own_password(request):
+    current_password = request.data.get("current_password") or ""
+    new_password = request.data.get("new_password") or ""
+    if not request.user.check_password(current_password):
+        return Response({"detail": "Current password is incorrect."}, status=400)
+    errors = _password_errors(new_password, user=request.user)
+    if errors:
+        return Response({"detail": errors[0], "errors": errors}, status=400)
+    request.user.set_password(new_password)
+    request.user.save(update_fields=["password"])
+    update_session_auth_hash(request, request.user)
+    return Response({"ok": True})

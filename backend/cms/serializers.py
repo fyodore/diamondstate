@@ -13,6 +13,7 @@ from .models import (
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
+    clear_logo = serializers.BooleanField(required=False, write_only=True, default=False)
 
     class Meta:
         model = SiteSettings
@@ -22,6 +23,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             "motto",
             "logo",
             "logo_url",
+            "clear_logo",
             "facebook_url",
             "instagram_url",
             "threads_url",
@@ -33,6 +35,9 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["updated_at", "logo_url"]
+        extra_kwargs = {
+            "logo": {"required": False, "allow_null": True},
+        }
 
     def get_logo_url(self, obj):
         if not obj.logo:
@@ -42,6 +47,25 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(url)
         return url
+
+    def update(self, instance, validated_data):
+        clear_logo = validated_data.pop("clear_logo", False)
+        logo = validated_data.pop("logo", serializers.empty)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if clear_logo and logo is serializers.empty:
+            if instance.logo:
+                instance.logo.delete(save=False)
+            instance.logo = None
+        elif logo is not serializers.empty:
+            if instance.logo and instance.logo != logo:
+                instance.logo.delete(save=False)
+            instance.logo = logo
+
+        instance.save()
+        return instance
 
 
 class FormFieldSerializer(serializers.ModelSerializer):

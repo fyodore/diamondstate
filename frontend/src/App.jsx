@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth'
 import PublicLayout from './components/PublicLayout'
 import PublicPage from './pages/PublicPage'
@@ -11,6 +11,7 @@ import AdminForms from './pages/admin/AdminForms'
 import AdminSubmissions from './pages/admin/AdminSubmissions'
 import AdminPasskeys from './pages/admin/AdminPasskeys'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminUsers from './pages/admin/AdminUsers'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="blocks" element={<AdminBlocks />} />
             <Route path="forms" element={<AdminForms />} />
             <Route path="submissions" element={<AdminSubmissions />} />
+            <Route path="users" element={<AdminUsers />} />
             <Route path="passkeys" element={<AdminPasskeys />} />
           </Route>
           <Route element={<PublicLayout />}>

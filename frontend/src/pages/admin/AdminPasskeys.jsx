@@ -5,8 +5,10 @@ import {
   preparePublicKeyOptions,
   publicKeyCredentialToJSON,
 } from '../../api'
+import { useAuth } from '../../auth'
 
 export default function AdminPasskeys() {
+  const { user } = useAuth()
   const [passkeys, setPasskeys] = useState([])
   const [deviceName, setDeviceName] = useState('My passkey')
   const [message, setMessage] = useState('')
@@ -43,8 +45,9 @@ export default function AdminPasskeys() {
     <div className="panel stack">
       <h1 style={{ margin: 0 }}>Passkeys</h1>
       <p className="muted">
-        Register a passkey on this device after signing in with your password. You can then use it
-        on the admin login screen.
+        Passkeys belong only to your signed-in account
+        {user?.username ? ` (${user.username})` : ''}. Register one on this device after signing
+        in with your password, then use it on the admin login screen.
       </p>
       <div className="row">
         <div className="field" style={{ flex: 1 }}>

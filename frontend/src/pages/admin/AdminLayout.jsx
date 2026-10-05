@@ -22,6 +22,7 @@ export default function AdminLayout() {
         <NavLink to="/manage/blocks">Blocks</NavLink>
         <NavLink to="/manage/forms">Forms</NavLink>
         <NavLink to="/manage/submissions">Submissions</NavLink>
+        <NavLink to="/manage/users">Users</NavLink>
         <NavLink to="/manage/passkeys">Passkeys</NavLink>
         <button className="btn ghost" type="button" onClick={logout} style={{ marginTop: 'auto' }}>
           Log out
