@@ -64,6 +64,10 @@ export default function InterestForm({ form, sourcePage }) {
             <div className="field" key={field.id}>
               {field.field_type === 'checkbox' ? (
                 <label className="checkbox-row">
+                  <span>
+                    {field.label}
+                    {field.required ? ' *' : ''}
+                  </span>
                   <input
                     type="checkbox"
                     checked={Boolean(values[field.field_key])}
@@ -71,10 +75,6 @@ export default function InterestForm({ form, sourcePage }) {
                       setValues((v) => ({ ...v, [field.field_key]: e.target.checked }))
                     }
                   />
-                  <span>
-                    {field.label}
-                    {field.required ? ' *' : ''}
-                  </span>
                 </label>
               ) : field.field_type === 'multicheckbox' ? (
                 <>

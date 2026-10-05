@@ -346,7 +346,7 @@ textarea {
   color: var(--navy);
 }
 
-.field input,
+.field input:not([type="checkbox"]),
 .field select,
 .field textarea {
   width: 100%;
@@ -369,7 +369,20 @@ textarea {
 
 .checkbox-row input[type="checkbox"] {
   flex-shrink: 0;
+  width: auto;
   margin: 0.2rem 5px 0 0;
+  padding: 0;
+}
+
+/* Single checkbox field: label text on top, checkbox directly under it */
+.field > .checkbox-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.field > .checkbox-row input[type="checkbox"] {
+  margin: 0;
 }
 
 .field-legend {
